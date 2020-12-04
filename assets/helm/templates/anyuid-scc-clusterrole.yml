@@ -1,4 +1,4 @@
-{{- $fullName := include "splunk.fullname" . -}}
+{{- $fullName := include "loki.fullname" . -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

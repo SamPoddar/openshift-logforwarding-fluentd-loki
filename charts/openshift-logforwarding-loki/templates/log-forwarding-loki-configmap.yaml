@@ -1,0 +1,62 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "openshift-logforwarding-loki.fullname" . }}
+  labels:
+    app.kubernetes.io/component: fluentd
+{{ include "openshift-logforwarding-loki.labels" . | indent 4 }}
+data:
+  fluentd-loglevel: {{ .Values.forwarding.fluentd.loglevel | squote }}
+  loki-insecure: {{ .Values.forwarding.loki.insecure | squote }}
+  loki-hostname: {{ .Values.forwarding.loki.hostname | squote }}
+  loki-port: {{ .Values.forwarding.loki.port | squote  }}
+  loki-protocol: {{ .Values.forwarding.loki.protocol | squote  }}
+  loki-index: {{ .Values.forwarding.loki.index | squote  }}
+  loki-sourcetype: {{ .Values.forwarding.loki.sourcetype | squote  }}
+  loki-source: {{ .Values.forwarding.loki.source | squote  }}
+  td-agent.conf: |
+
+    <system>
+      log_level "#{ENV['LOG_LEVEL'] }"
+    </system>
+
+    <source>
+      @type  forward
+      @id    input1
+      port  24224
+{{ if .Values.forwarding.fluentd.ssl }}
+      <transport tls>
+        cert_path /secret/fluentd/tls.crt
+        private_key_path /secret/fluentd/tls.key
+        private_key_passphrase "#{ENV['FLUENTD_SSL_PASSPHRASE'] }"
+      </transport>
+{{ end }}
+      <security>
+        shared_key "#{ENV['SHARED_KEY'] }"
+        self_hostname "#{ENV['HOSTNAME']}"
+      </security>
+
+    </source>
+
+    <match **>
+      @type loki_hec
+      protocol "#{ENV['loki_PROTOCOL'] }"
+      insecure_ssl "#{ENV['loki_INSECURE'] }"
+      hec_host "#{ENV['loki_HOST'] }"
+      sourcetype "#{ENV['loki_SOURCETYPE'] }"
+      source "#{ENV['loki_SOURCE'] }"
+      index "#{ENV['loki_INDEX'] }"
+      hec_port "#{ENV['loki_PORT'] }"
+      hec_token "#{ENV['loki_TOKEN'] }"
+      host "#{ENV['NODE_NAME']}"
+      {{- if and (not .Values.forwarding.loki.insecure) .Values.forwarding.loki.caFile }}
+      ca_file /secrets/loki/loki-ca.crt
+      {{- end }}
+      {{- with .Values.forwarding.fluentd.buffer }}
+      <buffer>
+      {{- range $parameter, $value := . }}
+        {{ $parameter }} {{ $value }}
+      {{- end }}
+      </buffer>
+      {{- end }}
+    </match>

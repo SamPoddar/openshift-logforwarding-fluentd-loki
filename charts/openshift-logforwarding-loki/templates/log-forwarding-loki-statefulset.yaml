@@ -1,5 +1,5 @@
-{{- $fullName := include "openshift-logforwarding-splunk.fullname" . -}}
-{{- $splunkSecret := printf "%s-splunk" $fullName -}}
+{{- $fullName := include "openshift-logforwarding-loki.fullname" . -}}
+{{- $lokiSecret := printf "%s-loki" $fullName -}}
 {{- $logForwardingConfig := printf "%s-config" $fullName -}}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -7,7 +7,7 @@ metadata:
   name: {{ $fullName }}
   labels:
     app.kubernetes.io/component: fluentd
-{{ include "openshift-logforwarding-splunk.labels" . | indent 4 }}
+{{ include "openshift-logforwarding-loki.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.forwarding.fluentd.replicas }}
   serviceName: {{ $fullName }}-headless
@@ -44,46 +44,46 @@ spec:
                 secretKeyRef:
                   name: {{ $fullName }}
                   key: shared_key
-            - name: SPLUNK_HOST
+            - name: loki_HOST
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-hostname
-            - name: SPLUNK_SOURCETYPE
+                  key: loki-hostname
+            - name: loki_SOURCETYPE
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-sourcetype
-            - name: SPLUNK_SOURCE
+                  key: loki-sourcetype
+            - name: loki_SOURCE
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-source
-            - name: SPLUNK_PORT
+                  key: loki-source
+            - name: loki_PORT
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-port
-            - name: SPLUNK_PROTOCOL
+                  key: loki-port
+            - name: loki_PROTOCOL
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-protocol
-            - name: SPLUNK_INSECURE
+                  key: loki-protocol
+            - name: loki_INSECURE
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-insecure
-            - name: SPLUNK_TOKEN
+                  key: loki-insecure
+            - name: loki_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ $fullName }}
                   key: hec-token
-            - name: SPLUNK_INDEX
+            - name: loki_INDEX
               valueFrom:
                 configMapKeyRef:
                   name: {{ $fullName }}
-                  key: splunk-index
+                  key: loki-index
             - name: FLUENTD_SSL_PASSPHRASE
               valueFrom:
                 secretKeyRef:
@@ -99,9 +99,9 @@ spec:
               readOnly: true
             - name: buffer
               mountPath: "/var/log/fluentd"
-            {{- if and (not .Values.forwarding.splunk.insecure) .Values.forwarding.splunk.caFile }}
-            - mountPath: /secret/splunk
-              name: splunk-certs
+            {{- if and (not .Values.forwarding.loki.insecure) .Values.forwarding.loki.caFile }}
+            - mountPath: /secret/loki
+              name: loki-certs
               readOnly: true
             {{- end }}
           terminationMessagePolicy: File
@@ -165,13 +165,13 @@ spec:
         - name: buffer
           emptyDir: {}
         {{- end }}
-        {{- if and (not .Values.forwarding.splunk.insecure) .Values.forwarding.splunk.caFile }}
-        - name: splunk-certs
+        {{- if and (not .Values.forwarding.loki.insecure) .Values.forwarding.loki.caFile }}
+        - name: loki-certs
           secret:
-            secretName: {{ $fullName }}-splunk
+            secretName: {{ $fullName }}-loki
             items:
-              - key: splunk-ca.crt
-                path: splunk-ca.crt
+              - key: loki-ca.crt
+                path: loki-ca.crt
         {{- end }}
       dnsPolicy: ClusterFirst
   {{- if .Values.forwarding.fluentd.persistence.enabled }}

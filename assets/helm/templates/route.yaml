@@ -1,10 +1,10 @@
-{{- $fullName := include "splunk.fullname" . -}}
+{{- $fullName := include "loki.fullname" . -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ $fullName }}
   labels:
-{{ include "splunk.labels" . | indent 4 }}
+{{ include "loki.labels" . | indent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

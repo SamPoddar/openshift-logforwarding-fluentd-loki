@@ -1,4 +1,4 @@
-{{- $fullName := include "openshift-logforwarding-splunk.fullname" . -}}
+{{- $fullName := include "openshift-logforwarding-loki.fullname" . -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: logging.openshift.io/v1
 kind: ClusterLogForwarder
@@ -7,7 +7,7 @@ metadata:
   namespace: openshift-logging
   labels:
     app.kubernetes.io/component: cluster-logging
-{{ include "openshift-logforwarding-splunk.labels" . | indent 4 }}
+{{ include "openshift-logforwarding-loki.labels" . | indent 4 }}
 spec:
   outputs:
     - url: "tls://{{ $fullName }}.{{ .Release.Namespace }}.svc:{{ $.Values.forwarding.fluentd.port }}"
@@ -16,7 +16,7 @@ spec:
       secret:
         name: {{ $fullName }}
   pipelines:
-      {{- if or .Values.openshift.forwarding.app.elasticsearch .Values.openshift.forwarding.app.splunk }}
+      {{- if or .Values.openshift.forwarding.app.elasticsearch .Values.openshift.forwarding.app.loki }}
     - inputRefs:
         - application
       name: container-logs
@@ -24,11 +24,11 @@ spec:
       {{- if or .Values.openshift.forwarding.app.elasticsearch }}
         - default
       {{- end }}
-      {{- if or .Values.openshift.forwarding.app.splunk }}
+      {{- if or .Values.openshift.forwarding.app.loki }}
         - {{ $fullName }}
       {{- end }}
       {{- end }}
-      {{- if or .Values.openshift.forwarding.infra.elasticsearch .Values.openshift.forwarding.infra.splunk }}
+      {{- if or .Values.openshift.forwarding.infra.elasticsearch .Values.openshift.forwarding.infra.loki }}
     - inputRefs:
         - infrastructure
       name: infra-logs
@@ -36,11 +36,11 @@ spec:
       {{- if or .Values.openshift.forwarding.infra.elasticsearch }}
         - default
       {{- end }}
-      {{- if or .Values.openshift.forwarding.infra.splunk }}
+      {{- if or .Values.openshift.forwarding.infra.loki }}
         - {{ $fullName }}
       {{- end }}
       {{- end }}
-      {{- if or .Values.openshift.forwarding.audit.elasticsearch .Values.openshift.forwarding.audit.splunk }}
+      {{- if or .Values.openshift.forwarding.audit.elasticsearch .Values.openshift.forwarding.audit.loki }}
     - inputRefs:
         - audit
       name: audit-logs
@@ -48,7 +48,7 @@ spec:
       {{- if or .Values.openshift.forwarding.audit.elasticsearch }}
         - default
       {{- end }}
-      {{- if or .Values.openshift.forwarding.audit.splunk }}
+      {{- if or .Values.openshift.forwarding.audit.loki }}
         - {{ $fullName }}
       {{- end }}
       {{- end }}

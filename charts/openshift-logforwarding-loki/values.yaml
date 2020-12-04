@@ -8,16 +8,16 @@ openshift:
       elasticsearch: false
       splunk: false
     app:
-      elasticsearch: true
-      splunk: true
+      elasticsearch: false
+      splunk: false
     infra:
-      elasticsearch: true
-      splunk: true
+      elasticsearch: false
+      splunk: false
 
 forwarding:
   fluentd:
     port: 24224
-    sharedkey: splunkforwarding
+    sharedkey: lokiforwarding
     passphrase: ""
     ssl: true
     caFile: files/default-openshift-logging-fluentd.crt
@@ -36,7 +36,7 @@ forwarding:
       # storageClass: "-"
       storageClass: ""
       accessMode: ReadWriteOnce
-    image: registry.redhat.io/openshift4/ose-logging-fluentd:v4.4
+    image: registry.redhat.io/openshift4/ose-logging-fluentd:v4.5
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -71,12 +71,12 @@ forwarding:
       # total_limit_size: "600m"
       # chunk_limit_records: 100000
       # overflow_action: block
-  splunk:
+  loki:
     # Specify Splunk HEC Token and Index
     token:
     index: openshift
     protocol: https
-    hostname: splunk.splunk.svc
+    hostname: loki.loki.svc
     port: 8088
     insecure: true
     sourcetype: openshift
